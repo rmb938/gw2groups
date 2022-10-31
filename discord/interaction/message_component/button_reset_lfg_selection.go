@@ -23,7 +23,7 @@ func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo
 		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error creating playfab customid: %w", err)
+		return nil, fmt.Errorf("error logging in with playfab customid: %w", err)
 	}
 
 	gw2Client := gw2Api.NewGW2APIClient(loginResponse.InfoResultPayload.UserData["gw2-api-key"].Value)
@@ -46,6 +46,14 @@ func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error updating playfab user data: %w", err)
+	}
+
+	err = playFabClient.CancelAllMatchmakingTicketsForPlayer(ctx, &playFabAPI.CancelAllMatchmakingTicketsForPlayerRequest{
+		QueueName: "dungeons",
+		Entity:    loginResponse.EntityToken.Entity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("error canceling all dungeon match making tickets: %w", err)
 	}
 
 	return &discordgo.InteractionResponse{

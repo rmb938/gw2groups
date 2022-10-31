@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	_const "github.com/rmb938/gw2groups/discord/const"
 	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
 	"k8s.io/utils/pointer"
 )
@@ -32,21 +33,17 @@ func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Se
 		}
 	}
 
-	selectOptions := interaction.Message.Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.SelectMenu).Options
 	if hasAny {
 		data.Values = []string{}
-		for _, option := range selectOptions {
-			if option.Value == "any" {
-				continue
-			}
-			data.Values = append(data.Values, option.Value)
+		for key, _ := range _const.Dungeons {
+			data.Values = append(data.Values, key)
 		}
 	}
 
-	for _, option := range selectOptions {
+	for key, value := range _const.Dungeons {
 		for _, selectedOption := range data.Values {
-			if option.Value == selectedOption {
-				dungeonsList = append(dungeonsList, option.Label)
+			if key == selectedOption {
+				dungeonsList = append(dungeonsList, value)
 			}
 		}
 	}
@@ -88,31 +85,6 @@ func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Se
 						},
 					},
 				},
-				discordgo.ActionsRow{
-					Components: []discordgo.MessageComponent{
-						discordgo.Button{
-							Label:    "Reset LFG Selections",
-							CustomID: "button_reset_lfg_selection",
-							Style:    discordgo.DangerButton,
-						},
-					},
-				},
-			},
-		},
-	}, nil
-
-	// See https://learn.microsoft.com/en-us/gaming/playfab/features/multiplayer/matchmaking/config-examples#hostsearcher-or-role-based-requirements when doing Raids
-	//  Specifically the "Games may have role requirements" part for selecting healer, support, tank, ect.. (quickness, alacrity, ect..)
-
-	// TODO: move this all this bellow
-	// TODO: do matchmaking here
-	//  use https://wiki.guildwars2.com/wiki/API:2/worlds to filter to correct world, find first digit and set lfg_world=1 or =2 in ticket props
-
-	return &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseUpdateMessage,
-		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf("> Category: **Dungeons**\n> Dungeon: **%s**\n \nNow matchmaking for Dungeons", strings.Join(dungeonsList, ", ")),
-			Components: []discordgo.MessageComponent{
 				discordgo.ActionsRow{
 					Components: []discordgo.MessageComponent{
 						discordgo.Button{

@@ -68,6 +68,7 @@ func (c *Client) LoginWithCustomID(ctx context.Context, request *LoginWithCustom
 	}
 
 	c.sessionTicket = pointer.String(response.SessionTicket)
+	c.entityToken = pointer.String(response.EntityToken.EntityToken)
 
 	return response, nil
 }

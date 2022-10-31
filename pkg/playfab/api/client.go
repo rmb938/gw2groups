@@ -96,14 +96,16 @@ func (c *Client) doRequest(ctx context.Context, method string, uri string, reqBo
 		return fmt.Errorf("error unmarshaling body: %w, body: %s", err, string(body))
 	}
 
-	rawResponseData, err := json.Marshal(apiResponse.Data)
-	if err != nil {
-		return fmt.Errorf("error marshaling api response data: %w, body: %s", err, apiResponse.Data)
-	}
+	if object != nil {
+		rawResponseData, err := json.Marshal(apiResponse.Data)
+		if err != nil {
+			return fmt.Errorf("error marshaling api response data: %w, body: %s", err, apiResponse.Data)
+		}
 
-	err = json.Unmarshal(rawResponseData, object)
-	if err != nil {
-		return fmt.Errorf("error unmarshaling api response data: %w, body: %s", err, string(rawResponseData))
+		err = json.Unmarshal(rawResponseData, object)
+		if err != nil {
+			return fmt.Errorf("error unmarshaling api response data: %w, body: %s", err, string(rawResponseData))
+		}
 	}
 
 	return nil

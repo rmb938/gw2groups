@@ -3,6 +3,7 @@ package modal_submit
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	gw2Api "github.com/rmb938/gw2groups/pkg/gw2/api"
@@ -43,18 +44,29 @@ func (s *ModalsGw2ApiKey) Handle(ctx context.Context, session *discordgo.Session
 	}
 
 	playFabClient := playFabAPI.NewPlayFabClient()
-	_, err = playFabClient.LoginWithCustomID(ctx, &playFabAPI.LoginWithCustomIDRequest{
+	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.LoginWithCustomIDRequest{
 		CreateAccount: pointer.Bool(true),
 		CustomId:      pointer.String(interaction.User.ID),
+		InfoRequestParameters: &playFabAPI.PlayerCombinedInfoRequestParams{
+			GetUserData: pointer.Bool(true),
+		},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error creating playfab customid: %w", err)
+	}
+
+	var lfgKeys []string
+	for key, _ := range loginResponse.InfoResultPayload.UserData {
+		if strings.HasPrefix(key, "lfg_") {
+			lfgKeys = append(lfgKeys, key)
+		}
 	}
 
 	_, err = playFabClient.UpdateUserData(ctx, &playFabAPI.UpdateUserDataRequest{
 		Data: map[string]string{
 			"gw2-api-key": apiKey,
 		},
+		KeysToRemove: lfgKeys,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("error updating playfab user data: %w", err)

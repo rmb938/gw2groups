@@ -15,7 +15,7 @@ var messageComponents = map[string]message_component.Component{
 	"select_menu_lfg_category":            &message_component.SelectMenuLFGCategory{},
 	"button_reset_lfg_selection":          &message_component.ButtonResetLFGSelection{},
 	"select_menu_lfg_dungeon":             &message_component.SelectMenuLFGDungeon{},
-	"button_lfg_dungeon_mode_story":       nil,
+	"button_lfg_dungeon_mode_story":       &message_component.ButtonLFGDungeonModeStory{},
 	"button_lfg_dungeon_mode_exploration": nil,
 }
 
