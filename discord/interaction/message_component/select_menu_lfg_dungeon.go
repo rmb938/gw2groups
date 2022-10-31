@@ -78,12 +78,12 @@ func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Se
 					Components: []discordgo.MessageComponent{
 						discordgo.Button{
 							Label:    "Story Mode",
-							CustomID: "button_reset_lfg_dungeon_mode_story",
+							CustomID: "button_lfg_dungeon_mode_story",
 							Style:    discordgo.PrimaryButton,
 						},
 						discordgo.Button{
 							Label:    "Exploration Mode",
-							CustomID: "button_reset_lfg_dungeon_mode_exploration",
+							CustomID: "button_lfg_dungeon_mode_exploration",
 							Style:    discordgo.PrimaryButton,
 						},
 					},

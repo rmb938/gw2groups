@@ -11,12 +11,12 @@ import (
 type MessageComponent struct{}
 
 var messageComponents = map[string]message_component.Component{
-	"button_gw2_api_key":                        &message_component.ButtonGw2ApiKey{},
-	"select_menu_lfg_category":                  &message_component.SelectMenuLFGCategory{},
-	"button_reset_lfg_selection":                &message_component.ButtonResetLFGSelection{},
-	"select_menu_lfg_dungeon":                   &message_component.SelectMenuLFGDungeon{},
-	"button_reset_lfg_dungeon_mode_story":       nil,
-	"button_reset_lfg_dungeon_mode_exploration": nil,
+	"button_gw2_api_key":                  &message_component.ButtonGw2ApiKey{},
+	"select_menu_lfg_category":            &message_component.SelectMenuLFGCategory{},
+	"button_reset_lfg_selection":          &message_component.ButtonResetLFGSelection{},
+	"select_menu_lfg_dungeon":             &message_component.SelectMenuLFGDungeon{},
+	"button_lfg_dungeon_mode_story":       nil,
+	"button_lfg_dungeon_mode_exploration": nil,
 }
 
 func (i *MessageComponent) Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) (*discordgo.InteractionResponse, error) {
