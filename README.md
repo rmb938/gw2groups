@@ -20,6 +20,8 @@ TODO: `make run-playfab`
 
 #### Discord Setup
 
+Discord is used for the Bot
+
 1. Create a Discord Server
 1. Create a Discord Application [here](https://discord.com/developers/applications)
     * Copy the Application ID into the `.env` file ex: `DISCORD_APP_ID=123456789`
@@ -34,6 +36,10 @@ TODO: `make run-playfab`
 
 #### Playfab Setup
 
+Playfab is used for automatic matchmaking to form groups.
+Discord User IDs and GW2 API tokens are stored in player objects.
+
+1. Register for a free [Playfab](https://playfab.com/) account
 1. Create a new title
     * Copy the Title ID into the `.env` file ex: `PLAYFAB_TITLE_ID=ABCD0`
 
