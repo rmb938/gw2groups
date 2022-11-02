@@ -1,4 +1,4 @@
-package interaction
+package sync
 
 import (
 	"context"

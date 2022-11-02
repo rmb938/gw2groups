@@ -1,11 +1,11 @@
-package interaction
+package async
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/rmb938/gw2groups/discord/interaction/modal_submit"
+	"github.com/rmb938/gw2groups/discord/interaction/async/modal_submit"
 )
 
 type ModalSubmit struct{}
@@ -14,7 +14,7 @@ var modalSubmits = map[string]modal_submit.Submit{
 	"modals_gw2_api_key": &modal_submit.ModalsGw2ApiKey{},
 }
 
-func (i *ModalSubmit) Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) (*discordgo.InteractionResponse, error) {
+func (i *ModalSubmit) Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) error {
 	data := interaction.ModalSubmitData()
 
 	// Real Message Handler Here
@@ -22,5 +22,5 @@ func (i *ModalSubmit) Handler(ctx context.Context, session *discordgo.Session, i
 		return component.Handle(ctx, session, interaction, data)
 	}
 
-	return nil, fmt.Errorf("modal submit %s not implemented", data.CustomID)
+	return fmt.Errorf("modal submit %s not implemented", data.CustomID)
 }

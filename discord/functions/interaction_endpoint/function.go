@@ -1,4 +1,4 @@
-package discord
+package interaction_endpoint
 
 import (
 	"encoding/hex"
@@ -9,11 +9,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
+	interaction2 "github.com/rmb938/gw2groups/discord/interaction"
 )
 
 var chiRouter *chi.Mux
@@ -48,6 +48,7 @@ func init() {
 		})
 	})
 
+	// TODO: move this into the Post / once the command overwrite is moved
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_APP_BOT_TOKEN"))
 	if err != nil {
 		panic(fmt.Errorf("error creating session client: %w", err))
@@ -86,7 +87,7 @@ func init() {
 			return
 		}
 
-		response, err := InteractionRouter(ctx, session, interaction)
+		response, err := interaction2.SyncInteractionRouter(ctx, session, interaction, bodyRaw)
 		if err != nil {
 			log.Printf("error handling interaction %s: %s\n", interaction.Type, err)
 			http.Error(w, "error handling interaction", http.StatusInternalServerError)
@@ -102,10 +103,8 @@ func init() {
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, response)
 	})
-
-	functions.HTTP("discord", discordInteraction)
 }
 
-func discordInteraction(w http.ResponseWriter, r *http.Request) {
+func InteractionEndpoint(w http.ResponseWriter, r *http.Request) {
 	chiRouter.ServeHTTP(w, r)
 }

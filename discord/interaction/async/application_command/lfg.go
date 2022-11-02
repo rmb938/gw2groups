@@ -9,17 +9,10 @@ import (
 
 type LFG struct{}
 
-func (c *LFG) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.ApplicationCommandInteractionData) (*discordgo.InteractionResponse, error) {
-	interactionResp := &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "I've sent you a DM.",
-		},
-	}
-
+func (c *LFG) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.ApplicationCommandInteractionData) error {
 	userDM, err := session.UserChannelCreate(interaction.Member.User.ID)
 	if err != nil {
-		return nil, fmt.Errorf("error creating user DM channel: %w", err)
+		return fmt.Errorf("error creating user DM channel: %w", err)
 	}
 
 	// TODO: lookup playfab player using User.ID
@@ -41,10 +34,10 @@ func (c *LFG) Handle(ctx context.Context, session *discordgo.Session, interactio
 		},
 	})
 	if err != nil {
-		return nil, fmt.Errorf("error sending DM message: %w", err)
+		return fmt.Errorf("error sending DM message: %w", err)
 	}
 
-	return interactionResp, nil
+	return nil
 }
 
 func (c *LFG) CanDM() bool {

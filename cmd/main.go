@@ -8,7 +8,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/funcframework"
-	_ "github.com/rmb938/gw2groups/discord"
+	_ "github.com/rmb938/gw2groups/discord/functions"
 )
 
 func main() {

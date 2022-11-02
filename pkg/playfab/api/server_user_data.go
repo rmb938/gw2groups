@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -12,7 +13,8 @@ type UserDataRecordResponse struct {
 	Value       string    `json:"Value"`
 }
 
-type UpdateUserDataRequest struct {
+type ServerUpdateUserDataRequest struct {
+	PlayFabId    string            `json:"PlayFabId"`
 	CustomTags   map[string]string `json:"CustomTags"`
 	Data         map[string]string `json:"Data"`
 	KeysToRemove []string          `json:"KeysToRemove"`
@@ -23,10 +25,15 @@ type UpdateUserDataResponse struct {
 	DataVersion int `json:"DataVersion"`
 }
 
-func (c *Client) UpdateUserData(ctx context.Context, request *UpdateUserDataRequest) (*UpdateUserDataResponse, error) {
+func (c *Client) UpdateUserData(ctx context.Context, playfabID string, request *ServerUpdateUserDataRequest) (*UpdateUserDataResponse, error) {
 	response := &UpdateUserDataResponse{}
 
-	err := c.doRequest(ctx, http.MethodPost, "/Client/UpdateUserData", request, response)
+	header := make(http.Header)
+	header.Add("X-SecretKey", os.Getenv("PLAYFAB_TITLE_SECRET_KEY"))
+
+	request.PlayFabId = playfabID
+
+	err := c.doRequest(ctx, http.MethodPost, "/Server/UpdateUserData", header, request, response)
 	if err != nil {
 		return nil, err
 	}

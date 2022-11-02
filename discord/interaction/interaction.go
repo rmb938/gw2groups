@@ -6,6 +6,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-type Interaction interface {
+type SyncInteraction interface {
 	Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) (*discordgo.InteractionResponse, error)
+}
+
+type AsyncInteraction interface {
+	Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) error
 }

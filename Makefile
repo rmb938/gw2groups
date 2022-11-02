@@ -20,8 +20,21 @@ SHELL = /usr/bin/env bash -o pipefail
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-
 ##@ Development
 
-run-discord: ## Run hello-world function
-	FUNCTION_TARGET=discord go run ./cmd/main.go
+discord-ngrok: ## Start ngrok for discord
+	ngrok http 8080
+
+pubsub-emulator: ## Start PubSub Emulator
+	docker run --rm --add-host=host.docker.internal:host-gateway -p 127.0.0.1:8043:8043 google/cloud-sdk:latest gcloud beta emulators pubsub start --project=abc --host-port='0.0.0.0:8043'
+
+run-discordInteractionEndpoint: ## Run discordInteractionEndpoint function
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/gw2-discord-interactions'
+	PUBSUB_EMULATOR_HOST=localhost:8043 PUBSUB_PROJECT_ID=abc PUBSUB_TOPIC_ID=gw2-discord-interactions FUNCTION_TARGET=discordInteractionEndpoint go run ./cmd/main.go
+
+run-discordInteractionProcessor:
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/gw2-discord-interactions'
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/subscriptions/gw2-discord-interaction-processor' \
+        -H 'Content-Type: application/json' \
+        --data '{"topic":"projects/abc/topics/gw2-discord-interactions","pushConfig":{"pushEndpoint":"http://host.docker.internal:8180/projects/abc/topics/gw2-discord-interactions"}}'
+	PORT=8180 FUNCTION_TARGET=discordInteractionProcessor go run ./cmd/main.go

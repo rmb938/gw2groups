@@ -6,8 +6,8 @@ import (
 )
 
 type MatchmakingPlayerAttributes struct {
-	DataObject        map[string]string `json:"DataObject"`
-	EscapedDataObject string            `json:"EscapedDataObject"`
+	DataObject        map[string]interface{} `json:"DataObject,omitempty"`
+	EscapedDataObject *string                `json:"EscapedDataObject,omitempty"`
 }
 
 type MatchmakingPlayer struct {
@@ -27,10 +27,13 @@ type CreateMatchMakingTicketResponse struct {
 	TicketId string `json:"TicketId"`
 }
 
-func (c *Client) CreateMatchMakingTicket(ctx context.Context, request *CreateMatchMakingTicketRequest) (*CreateMatchMakingTicketResponse, error) {
+func (c *Client) CreateMatchMakingTicket(ctx context.Context, entityToken EntityToken, request *CreateMatchMakingTicketRequest) (*CreateMatchMakingTicketResponse, error) {
 	response := &CreateMatchMakingTicketResponse{}
 
-	err := c.doRequest(ctx, http.MethodPost, "/Match/CreateMatchmakingTicket", request, response)
+	header := make(http.Header)
+	header.Add("X-EntityToken", entityToken.EntityToken)
+
+	err := c.doRequest(ctx, http.MethodPost, "/Match/CreateMatchmakingTicket", header, request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -48,10 +51,13 @@ type ListMatchmakingTicketsForPlayerResponse struct {
 	TicketIds []string `json:"TicketIds"`
 }
 
-func (c *Client) ListMatchmakingTicketsForPlayer(ctx context.Context, request *ListMatchmakingTicketsForPlayerRequest) (*ListMatchmakingTicketsForPlayerResponse, error) {
+func (c *Client) ListMatchmakingTicketsForPlayer(ctx context.Context, entityToken EntityToken, request *ListMatchmakingTicketsForPlayerRequest) (*ListMatchmakingTicketsForPlayerResponse, error) {
 	response := &ListMatchmakingTicketsForPlayerResponse{}
 
-	err := c.doRequest(ctx, http.MethodPost, "/Match/ListMatchmakingTicketsForPlayer", request, response)
+	header := make(http.Header)
+	header.Add("X-EntityToken", entityToken.EntityToken)
+
+	err := c.doRequest(ctx, http.MethodPost, "/Match/ListMatchmakingTicketsForPlayer", header, request, response)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +71,11 @@ type CancelAllMatchmakingTicketsForPlayerRequest struct {
 	Entity     EntityKey         `json:"Entity"`
 }
 
-func (c *Client) CancelAllMatchmakingTicketsForPlayer(ctx context.Context, request *CancelAllMatchmakingTicketsForPlayerRequest) error {
-	err := c.doRequest(ctx, http.MethodPost, "/Match/CancelAllMatchmakingTicketsForPlayer", request, nil)
+func (c *Client) CancelAllMatchmakingTicketsForPlayer(ctx context.Context, entityToken EntityToken, request *CancelAllMatchmakingTicketsForPlayerRequest) error {
+	header := make(http.Header)
+	header.Add("X-EntityToken", entityToken.EntityToken)
+
+	err := c.doRequest(ctx, http.MethodPost, "/Match/CancelAllMatchmakingTicketsForPlayer", header, request, nil)
 	if err != nil {
 		return err
 	}
