@@ -82,7 +82,5 @@ func AsyncInteractionRouter(ctx context.Context, session *discordgo.Session, pub
 		return nil
 	}
 
-	// TODO: what do we do if we got an async but don't handle it (i.e http updated but pubsub hasn't yet)
-
 	return nil
 }

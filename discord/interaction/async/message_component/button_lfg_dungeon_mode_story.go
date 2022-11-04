@@ -65,7 +65,7 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 	gw2Client := gw2Api.NewGW2APIClient(loginResponse.InfoResultPayload.UserData["gw2-api-key"].Value)
 	gw2Account, err := gw2Client.GetAccount(ctx)
 	if err != nil {
-		// TODO: what is gw2 api key is invalid
+		// TODO: what if gw2 api key is invalid
 		return fmt.Errorf("error getting gw2 account: %w", err)
 	}
 

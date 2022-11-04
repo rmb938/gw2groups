@@ -125,10 +125,6 @@ func HTTPRouter() *chi.Mux {
 			return
 		}
 
-		// TODO: get ticket, sleep 10 seconds, send off another pubsub
-		//   look at player data (lfg_last_ack_time - unix time seconds) to see if ticket should be canceled due to not acknowledging still looking
-		//   if ticket is cancelled send message about timeout and button to start over
-
 		select {
 		case <-ctx.Done():
 			break
