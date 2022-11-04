@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"time"
 )
 
 type MatchmakingPlayerAttributes struct {
@@ -81,4 +82,39 @@ func (c *Client) CancelAllMatchmakingTicketsForPlayer(ctx context.Context, entit
 	}
 
 	return nil
+}
+
+type GetMatchMakingTicketRequest struct {
+	EscapeObject bool              `json:"EscapeObject"`
+	QueueName    string            `json:"QueueName"`
+	TicketId     string            `json:"TicketId"`
+	CustomTags   map[string]string `json:"CustomTags"`
+}
+
+type GetMatchMakingTicketResponse struct {
+	CancellationReasonString string              `json:"CancellationReasonString"`
+	ChangeNumber             int                 `json:"ChangeNumber"`
+	Created                  time.Time           `json:"Created"`
+	Creator                  MatchmakingPlayer   `json:"Creator"`
+	GiveUpAfterSeconds       int64               `json:"GiveUpAfterSeconds"`
+	MatchId                  *string             `json:"MatchId"`
+	Members                  []MatchmakingPlayer `json:"Members"`
+	MembersToMatchWith       []EntityKey         `json:"MembersToMatchWith"`
+	QueueName                string              `json:"QueueName"`
+	Status                   string              `json:"Status"`
+	TicketId                 string              `json:"TicketId"`
+}
+
+func (c *Client) GetMatchmakingTicket(ctx context.Context, entityToken EntityToken, request *GetMatchMakingTicketRequest) (*GetMatchMakingTicketResponse, error) {
+	response := &GetMatchMakingTicketResponse{}
+
+	header := make(http.Header)
+	header.Add("X-EntityToken", entityToken.EntityToken)
+
+	err := c.doRequest(ctx, http.MethodPost, "/Match/GetMatchmakingTicket", header, request, response)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

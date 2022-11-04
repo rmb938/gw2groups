@@ -28,13 +28,14 @@ discord-ngrok: ## Start ngrok for discord
 pubsub-emulator: ## Start PubSub Emulator
 	docker run --rm --add-host=host.docker.internal:host-gateway -p 127.0.0.1:8043:8043 google/cloud-sdk:latest gcloud beta emulators pubsub start --project=abc --host-port='0.0.0.0:8043'
 
-run-discordInteractionEndpoint: ## Run discordInteractionEndpoint function
-	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/gw2-discord-interactions'
-	PUBSUB_EMULATOR_HOST=localhost:8043 PUBSUB_PROJECT_ID=abc PUBSUB_TOPIC_ID=gw2-discord-interactions FUNCTION_TARGET=discordInteractionEndpoint go run ./cmd/main.go
-
-run-discordInteractionProcessor:
-	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/gw2-discord-interactions'
-	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/subscriptions/gw2-discord-interaction-processor' \
+run:
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/discord-interactions'
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/playfab-matchmaking-tickets'
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/subscriptions/discord-interaction-processor' \
         -H 'Content-Type: application/json' \
-        --data '{"topic":"projects/abc/topics/gw2-discord-interactions","pushConfig":{"pushEndpoint":"http://host.docker.internal:8180/projects/abc/topics/gw2-discord-interactions"}}'
-	PORT=8180 FUNCTION_TARGET=discordInteractionProcessor go run ./cmd/main.go
+        --data '{"ackDeadlineSeconds": 60, "topic":"projects/abc/topics/discord-interactions","pushConfig":{"pushEndpoint":"http://host.docker.internal:8080/discord/process-interaction"}}'
+    # ackDeadlineSeconds should be set to 60, we should always be returning quickly within 10-20 seconds so this should be safe enough
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/subscriptions/playfab-matchmaking-ticket-poll' \
+        -H 'Content-Type: application/json' \
+        --data '{"ackDeadlineSeconds": 60, "topic":"projects/abc/topics/playfab-matchmaking-tickets","pushConfig":{"pushEndpoint":"http://host.docker.internal:8080/playfab/matchmaking-ticket-poll"}}'
+	PUBSUB_EMULATOR_HOST=localhost:8043 PUBSUB_PROJECT_ID=abc PUBSUB_DISCORD_INTERACTIONS_TOPIC_ID=discord-interactions PUBSUB_PLAYFAB_MATCHMAKING_TICKETS_TOPIC_ID=playfab-matchmaking-tickets go run ./cmd/run/main.go

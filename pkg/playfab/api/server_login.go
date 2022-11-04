@@ -15,17 +15,6 @@ type ServerLoginWithCustomIDRequest struct {
 	ServerCustomId        string                           `json:"ServerCustomId"`
 }
 
-type EntityKey struct {
-	Id   string `json:"Id"`
-	Type string `json:"Type"`
-}
-
-type EntityToken struct {
-	Entity          EntityKey `json:"Entity"`
-	EntityToken     string    `json:"EntityToken"`
-	TokenExpiration string    `json:"TokenExpiration"`
-}
-
 type UserSettingsResponse struct {
 	GatherDeviceInfo bool `json:"GatherDeviceInfo"`
 	GatherFocusInfo  bool `json:"GatherFocusInfo"`

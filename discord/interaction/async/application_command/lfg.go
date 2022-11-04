@@ -19,6 +19,8 @@ func (c *LFG) Handle(ctx context.Context, session *discordgo.Session, interactio
 	//  if player has title player data gw2-api-key go right into the LFG
 	//  otherwise show first time buttons (asking for api key)
 
+	// TODO: check if a ticket already exists, if so do something
+
 	_, err = session.ChannelMessageSendComplex(userDM.ID, &discordgo.MessageSend{
 		Content: "Hey there! It looks like this is your first time using LFG. Please enter your GW2 API Key", // TODO: formalize this
 		Components: []discordgo.MessageComponent{

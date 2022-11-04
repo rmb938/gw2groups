@@ -1,6 +1,17 @@
 package _const
 
-var Dungeons = map[string]string{
+var DungeonIDs = []string{
+	"ascalonian_catacombs",
+	"caudecus_manor",
+	"twilight_arbor",
+	"sorrows_embrace",
+	"citadel_of_flame",
+	"honor_of_the_waves",
+	"crucible_of_eternity",
+	"ruined_city_of_arah",
+}
+
+var DungeonsIDsToName = map[string]string{
 	"ascalonian_catacombs": "Ascalonian Catacombs",
 	"caudecus_manor":       "Caudecus's Manor",
 	"twilight_arbor":       "Twilight Arbor",

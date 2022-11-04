@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	_const "github.com/rmb938/gw2groups/discord/const"
 	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
@@ -14,7 +15,7 @@ import (
 
 type SelectMenuLFGDungeon struct{}
 
-func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
 	playFabClient := playFabAPI.NewPlayFabClient()
 	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
@@ -35,15 +36,15 @@ func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Se
 
 	if hasAny {
 		data.Values = []string{}
-		for key, _ := range _const.Dungeons {
-			data.Values = append(data.Values, key)
+		for _, id := range _const.DungeonIDs {
+			data.Values = append(data.Values, id)
 		}
 	}
 
-	for key, value := range _const.Dungeons {
+	for _, id := range _const.DungeonIDs {
 		for _, selectedOption := range data.Values {
-			if key == selectedOption {
-				dungeonsList = append(dungeonsList, value)
+			if id == selectedOption {
+				dungeonsList = append(dungeonsList, _const.DungeonsIDsToName[id])
 			}
 		}
 	}
@@ -86,7 +87,7 @@ func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Se
 			discordgo.ActionsRow{
 				Components: []discordgo.MessageComponent{
 					discordgo.Button{
-						Label:    "Exit Matchmaking",
+						Label:    "Reset LFG Selections",
 						CustomID: "button_reset_lfg_selection",
 						Style:    discordgo.DangerButton,
 					},

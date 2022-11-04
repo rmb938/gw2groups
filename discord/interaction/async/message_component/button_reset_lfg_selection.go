@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	gw2Api "github.com/rmb938/gw2groups/pkg/gw2/api"
 	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
@@ -13,7 +14,7 @@ import (
 
 type ButtonResetLFGSelection struct{}
 
-func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
 
 	playFabClient := playFabAPI.NewPlayFabClient()
 	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{

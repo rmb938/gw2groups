@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	"github.com/rmb938/gw2groups/discord/interaction/async/message_component"
 )
@@ -19,7 +20,7 @@ var messageComponents = map[string]message_component.Component{
 	// "button_lfg_dungeon_mode_exploration": nil,
 }
 
-func (i *MessageComponent) Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) error {
+func (i *MessageComponent) Handler(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction) error {
 	data := interaction.MessageComponentData()
 
 	// we only want to do things based on the last message
@@ -44,7 +45,7 @@ func (i *MessageComponent) Handler(ctx context.Context, session *discordgo.Sessi
 			return nil
 		}
 
-		return component.Handle(ctx, session, interaction, data)
+		return component.Handle(ctx, session, pubsubTopicPlayfabMatchmakingTickets, interaction, data)
 	}
 
 	return fmt.Errorf("message component %s not implemented", data.CustomID)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
@@ -24,15 +23,10 @@ var asyncInteractionHandlers = map[discordgo.InteractionType]AsyncInteraction{
 	discordgo.InteractionModalSubmit:        &async.ModalSubmit{},
 }
 
-func SyncInteractionRouter(ctx context.Context, session *discordgo.Session, i *discordgo.Interaction, interactionBytes []byte) (*discordgo.InteractionResponse, error) {
-	pubsubClient, err := pubsub.NewClient(ctx, os.Getenv("PUBSUB_PROJECT_ID"))
-	if err != nil {
-		return nil, fmt.Errorf("error creating pubsub client: %w", err)
-	}
-	pubsubTopic := pubsubClient.Topic(os.Getenv("PUBSUB_TOPIC_ID"))
-
+func SyncInteractionRouter(ctx context.Context, session *discordgo.Session, pubsubTopic *pubsub.Topic, i *discordgo.Interaction, interactionBytes []byte) (*discordgo.InteractionResponse, error) {
 	handler, ok := syncInteractionHandlers[i.Type]
 	var response *discordgo.InteractionResponse
+	var err error
 	if ok {
 		response, err = handler.Handler(ctx, session, i)
 		if err != nil {
@@ -48,7 +42,7 @@ func SyncInteractionRouter(ctx context.Context, session *discordgo.Session, i *d
 			Data: interactionBytes,
 		})
 
-		_, err = result.Get(ctx)
+		_, err := result.Get(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("error publishing message: %w", err)
 		}
@@ -73,14 +67,14 @@ func SyncInteractionRouter(ctx context.Context, session *discordgo.Session, i *d
 	return response, nil
 }
 
-func AsyncInteractionRouter(ctx context.Context, session *discordgo.Session, i *discordgo.Interaction) error {
+func AsyncInteractionRouter(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, i *discordgo.Interaction) error {
 	if handler, ok := asyncInteractionHandlers[i.Type]; ok {
 		// TODO: what to do with these errors
 		//   we most likely can't retry a majority of them
 		//   so we probably shouldn't actually error, just log
 		//   if we actually error we are going to retry until pubsub times out
 
-		err := handler.Handler(ctx, session, i)
+		err := handler.Handler(ctx, session, pubsubTopicPlayfabMatchmakingTickets, i)
 		if err != nil {
 			log.Printf("error handling async interaction: %s: %s", i.Type, err)
 		}

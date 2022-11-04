@@ -4,14 +4,16 @@ import (
 	"context"
 	"fmt"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
+	_const "github.com/rmb938/gw2groups/discord/const"
 	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
 	"k8s.io/utils/pointer"
 )
 
 type SelectMenuLFGCategory struct{}
 
-func (c *SelectMenuLFGCategory) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+func (c *SelectMenuLFGCategory) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
 	playFabClient := playFabAPI.NewPlayFabClient()
 	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
@@ -36,38 +38,13 @@ func (c *SelectMenuLFGCategory) Handle(ctx context.Context, session *discordgo.S
 				Label: "Any",
 				Value: "any",
 			},
-			{
-				Label: "Ascalonian Catacombs",
-				Value: "ascalonian_catacombs",
-			},
-			{
-				Label: "Caudecus's Manor",
-				Value: "caudecuss_manor",
-			},
-			{
-				Label: "Twilight Arbor",
-				Value: "twilight_arbor",
-			},
-			{
-				Label: "Sorrow's Embrace",
-				Value: "sorrows_embrace",
-			},
-			{
-				Label: "Citadel of Flame",
-				Value: "citadel_of_flame",
-			},
-			{
-				Label: "Honor of the Waves",
-				Value: "honor_of_the_waves",
-			},
-			{
-				Label: "Crucible of Eternity",
-				Value: "crucible_of_eternity",
-			},
-			{
-				Label: "The Ruined City of Arah",
-				Value: "the_ruined_city_of_arah",
-			},
+		}
+
+		for _, id := range _const.DungeonIDs {
+			dungeonOptions = append(dungeonOptions, discordgo.SelectMenuOption{
+				Label: _const.DungeonsIDsToName[id],
+				Value: id,
+			})
 		}
 
 		_, err = session.FollowupMessageEdit(interaction, interaction.Message.ID, &discordgo.WebhookEdit{

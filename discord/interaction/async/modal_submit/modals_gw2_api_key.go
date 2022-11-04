@@ -85,6 +85,10 @@ func (s *ModalsGw2ApiKey) Handle(ctx context.Context, session *discordgo.Session
 								Value: "dungeons",
 							},
 							{
+								Label: "Strike Missions",
+								Value: "strike_missions",
+							},
+							{
 								Label: "Raids",
 								Value: "raids",
 							},

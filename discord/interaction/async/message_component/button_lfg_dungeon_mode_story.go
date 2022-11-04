@@ -6,18 +6,20 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	_const "github.com/rmb938/gw2groups/discord/const"
 	gw2Api "github.com/rmb938/gw2groups/pkg/gw2/api"
 	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	"github.com/rmb938/gw2groups/playfab"
 	"k8s.io/utils/pointer"
 )
 
 type ButtonLFGDungeonModeStory struct{}
 
-func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
-
+func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
 	playFabClient := playFabAPI.NewPlayFabClient()
 	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
@@ -40,10 +42,10 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 		return fmt.Errorf("error parsing lfg_dungeon from player: %w", err)
 	}
 
-	for key, value := range _const.Dungeons {
+	for _, id := range _const.DungeonIDs {
 		for _, selectedOption := range queuedDungeons {
-			if key == selectedOption {
-				dungeonsList = append(dungeonsList, value)
+			if id == selectedOption {
+				dungeonsList = append(dungeonsList, _const.DungeonsIDsToName[id])
 			}
 		}
 	}
@@ -73,6 +75,24 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 		gw2WorldLocation = gw2WorldLocation / 10
 	}
 
+	// TODO: some sort of keep-alive
+	//  if we want pure 100% discord it'll need to be a button the user
+	//  clicks every now and then
+	//  but there won't be a way to tell them "their time is running out"
+	//  We also need something to check if their ticket has given up automatically
+	//  unsure how to do that without having a server constantly running and checking :(
+	//  to do this effectively we would need to spin up something for every match making request
+
+	// TODO: start helper method to do match making ticket
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+		Data: map[string]string{
+			"lfg_last_ack_time": strconv.FormatInt(time.Now().Unix(), 10),
+		},
+	})
+	if err != nil {
+		return fmt.Errorf("error updating playfab user data: %w", err)
+	}
+
 	matchMakingTicketResponse, err := playFabClient.CreateMatchMakingTicket(ctx, loginResponse.EntityToken, &playFabAPI.CreateMatchMakingTicketRequest{
 		Creator: playFabAPI.MatchmakingPlayer{
 			Entity: loginResponse.EntityToken.Entity,
@@ -89,8 +109,7 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 	if err != nil {
 		return fmt.Errorf("error creating matchmaking ticket: %w", err)
 	}
-
-	fmt.Printf("Matchmaking Ticket: %#v\n", matchMakingTicketResponse)
+	// TODO: end helper method to do match making ticket
 
 	_, err = session.FollowupMessageEdit(interaction, interaction.Message.ID, &discordgo.WebhookEdit{
 		Content: pointer.String(fmt.Sprintf("> Category: **Dungeons**\n> Dungeon: **%s**\n> Mode: **Story** __*When in story mode you are expected to watch all cutscenes and be beginner friendly*__\n \nNow matchmaking for Dungeons", strings.Join(dungeonsList, ", "))),
@@ -108,6 +127,25 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 	})
 	if err != nil {
 		return err
+	}
+
+	message := &playfab.MatchMakingTicketMessage{
+		QueueName: "dungeons",
+		TicketId:  matchMakingTicketResponse.TicketId,
+	}
+
+	messageBytes, err := json.Marshal(message)
+	if err != nil {
+		return fmt.Errorf("error marshaling MatchMakingTicketMessage: %w", err)
+	}
+
+	result := pubsubTopicPlayfabMatchmakingTickets.Publish(ctx, &pubsub.Message{
+		Data: messageBytes,
+	})
+
+	_, err = result.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("error publishing message: %w", err)
 	}
 
 	return nil
