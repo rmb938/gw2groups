@@ -5,29 +5,14 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"k8s.io/utils/pointer"
 )
 
-type LoginWithCustomIDRequest struct {
-	TitleId               string                           `json:"TitleId"`
+type ServerLoginWithCustomIDRequest struct {
 	CreateAccount         *bool                            `json:"CreateAccount,omitempty"`
-	CustomId              *string                          `json:"CustomId,omitempty"`
 	CustomTags            map[string]string                `json:"CustomTags,omitempty"`
-	EncryptedRequest      *string                          `json:"EncryptedRequest,omitempty"`
 	InfoRequestParameters *PlayerCombinedInfoRequestParams `json:"InfoRequestParameters,omitempty"`
 	PlayerSecret          *string                          `json:"PlayerSecret,omitempty"`
-}
-
-type EntityKey struct {
-	Id   string `json:"Id"`
-	Type string `json:"Type"`
-}
-
-type EntityTokenResponse struct {
-	Entity          EntityKey `json:"Entity"`
-	EntityToken     string    `json:"EntityToken"`
-	TokenExpiration string    `json:"TokenExpiration"`
+	ServerCustomId        string                           `json:"ServerCustomId"`
 }
 
 type UserSettingsResponse struct {
@@ -46,8 +31,8 @@ type TreatmentAssignmentResponse struct {
 	Variants  []string   `json:"Variants"`
 }
 
-type LoginResponse struct {
-	EntityToken         EntityTokenResponse         `json:"EntityToken"`
+type ServerLoginResponse struct {
+	EntityToken         EntityToken                 `json:"EntityToken"`
 	InfoResultPayload   PlayerCombinedInfoResponse  `json:"InfoResultPayload"`
 	LastLoginTime       time.Time                   `json:"LastLoginTime"`
 	NewlyCreated        bool                        `json:"NewlyCreated"`
@@ -57,18 +42,16 @@ type LoginResponse struct {
 	TreatmentAssignment TreatmentAssignmentResponse `json:"TreatmentAssignment"`
 }
 
-func (c *Client) LoginWithCustomID(ctx context.Context, request *LoginWithCustomIDRequest) (*LoginResponse, error) {
-	response := &LoginResponse{}
+func (c *Client) LoginWithCustomID(ctx context.Context, request *ServerLoginWithCustomIDRequest) (*ServerLoginResponse, error) {
+	response := &ServerLoginResponse{}
 
-	request.TitleId = os.Getenv("PLAYFAB_TITLE_ID")
+	header := make(http.Header)
+	header.Add("X-SecretKey", os.Getenv("PLAYFAB_TITLE_SECRET_KEY"))
 
-	err := c.doRequest(ctx, http.MethodPost, "/Client/LoginWithCustomID", request, response)
+	err := c.doRequest(ctx, http.MethodPost, "/Server/LoginWithServerCustomId", header, request, response)
 	if err != nil {
 		return nil, err
 	}
-
-	c.sessionTicket = pointer.String(response.SessionTicket)
-	c.entityToken = pointer.String(response.EntityToken.EntityToken)
 
 	return response, nil
 }

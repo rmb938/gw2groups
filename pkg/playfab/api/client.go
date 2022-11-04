@@ -13,10 +13,8 @@ import (
 )
 
 type Client struct {
-	titleId       string
-	sessionTicket *string
-	entityToken   *string
-	httpClient    *http.Client
+	titleId    string
+	httpClient *http.Client
 }
 
 func NewPlayFabClient() *Client {
@@ -37,7 +35,7 @@ type APIResponse struct {
 	Data   interface{} `json:"data"`
 }
 
-func (c *Client) doRequest(ctx context.Context, method string, uri string, reqBody interface{}, object interface{}) error {
+func (c *Client) doRequest(ctx context.Context, method string, uri string, header http.Header, reqBody interface{}, object interface{}) error {
 	u, err := url.JoinPath(fmt.Sprintf("https://%s.playfabapi.com", c.titleId), uri)
 	if err != nil {
 		return err
@@ -58,12 +56,7 @@ func (c *Client) doRequest(ctx context.Context, method string, uri string, reqBo
 	if err != nil {
 		return fmt.Errorf("error creating request: %w", err)
 	}
-	if c.entityToken != nil {
-		req.Header.Add("X-EntityToken", *c.entityToken)
-	}
-	if c.sessionTicket != nil {
-		req.Header.Add("X-Authorization", *c.sessionTicket)
-	}
+	req.Header = header
 	if reqBody != nil {
 		req.Header.Add("Content-Type", "application/json")
 	}

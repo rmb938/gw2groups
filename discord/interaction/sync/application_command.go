@@ -1,11 +1,11 @@
-package interaction
+package sync
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/rmb938/gw2groups/discord/interaction/application_command"
+	"github.com/rmb938/gw2groups/discord/interaction/sync/application_command"
 )
 
 type ApplicationCommand struct{}

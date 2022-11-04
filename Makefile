@@ -20,8 +20,22 @@ SHELL = /usr/bin/env bash -o pipefail
 help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
-
 ##@ Development
 
-run-discord: ## Run hello-world function
-	FUNCTION_TARGET=discord go run ./cmd/main.go
+discord-ngrok: ## Start ngrok for discord
+	ngrok http 8080
+
+pubsub-emulator: ## Start PubSub Emulator
+	docker run --rm --add-host=host.docker.internal:host-gateway -p 127.0.0.1:8043:8043 google/cloud-sdk:latest gcloud beta emulators pubsub start --project=abc --host-port='0.0.0.0:8043'
+
+run:
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/discord-interactions'
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/topics/playfab-matchmaking-tickets'
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/subscriptions/discord-interaction-processor' \
+        -H 'Content-Type: application/json' \
+        --data '{"ackDeadlineSeconds": 60, "topic":"projects/abc/topics/discord-interactions","pushConfig":{"pushEndpoint":"http://host.docker.internal:8080/discord/process-interaction"}}'
+    # ackDeadlineSeconds should be set to 60, we should always be returning quickly within 10-20 seconds so this should be safe enough
+	curl -s -X PUT 'http://localhost:8043/v1/projects/abc/subscriptions/playfab-matchmaking-ticket-poll' \
+        -H 'Content-Type: application/json' \
+        --data '{"ackDeadlineSeconds": 60, "topic":"projects/abc/topics/playfab-matchmaking-tickets","pushConfig":{"pushEndpoint":"http://host.docker.internal:8080/playfab/matchmaking-ticket-poll"}}'
+	PUBSUB_EMULATOR_HOST=localhost:8043 PUBSUB_PROJECT_ID=abc PUBSUB_DISCORD_INTERACTIONS_TOPIC_ID=discord-interactions PUBSUB_PLAYFAB_MATCHMAKING_TICKETS_TOPIC_ID=playfab-matchmaking-tickets go run ./cmd/run/main.go
