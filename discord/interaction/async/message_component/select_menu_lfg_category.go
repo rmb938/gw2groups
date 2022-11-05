@@ -4,25 +4,24 @@ import (
 	"context"
 	"fmt"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	_const "github.com/rmb938/gw2groups/discord/const"
-	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	"github.com/rmb938/gw2groups/pkg/api_clients/playfab"
 	"k8s.io/utils/pointer"
 )
 
 type SelectMenuLFGCategory struct{}
 
-func (c *SelectMenuLFGCategory) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
-	playFabClient := playFabAPI.NewPlayFabClient()
-	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
+func (c *SelectMenuLFGCategory) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+	playFabClient := playfab.NewPlayFabClient()
+	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playfab.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
 	})
 	if err != nil {
 		return fmt.Errorf("error logging in with playfab customid: %w", err)
 	}
 
-	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playfab.ServerUpdateUserDataRequest{
 		Data: map[string]string{
 			"lfg_category": data.Values[0],
 		},

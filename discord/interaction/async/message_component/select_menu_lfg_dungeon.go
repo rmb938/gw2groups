@@ -6,18 +6,17 @@ import (
 	"fmt"
 	"strings"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	_const "github.com/rmb938/gw2groups/discord/const"
-	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	"github.com/rmb938/gw2groups/pkg/api_clients/playfab"
 	"k8s.io/utils/pointer"
 )
 
 type SelectMenuLFGDungeon struct{}
 
-func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
-	playFabClient := playFabAPI.NewPlayFabClient()
-	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
+func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+	playFabClient := playfab.NewPlayFabClient()
+	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playfab.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
 	})
 	if err != nil {
@@ -54,7 +53,7 @@ func (c *SelectMenuLFGDungeon) Handle(ctx context.Context, session *discordgo.Se
 		return fmt.Errorf("error converting dungeon values to string: %w", err)
 	}
 
-	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playfab.ServerUpdateUserDataRequest{
 		Data: map[string]string{
 			"lfg_dungeon": string(dataValues),
 		},

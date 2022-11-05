@@ -5,21 +5,20 @@ import (
 	"fmt"
 	"strings"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
-	gw2Api "github.com/rmb938/gw2groups/pkg/gw2/api"
-	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	gw2Api "github.com/rmb938/gw2groups/pkg/api_clients/gw2"
+	"github.com/rmb938/gw2groups/pkg/api_clients/playfab"
 	"k8s.io/utils/pointer"
 )
 
 type ButtonResetLFGSelection struct{}
 
-func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
 
-	playFabClient := playFabAPI.NewPlayFabClient()
-	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
+	playFabClient := playfab.NewPlayFabClient()
+	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playfab.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
-		InfoRequestParameters: &playFabAPI.PlayerCombinedInfoRequestParams{
+		InfoRequestParameters: &playfab.PlayerCombinedInfoRequestParams{
 			GetUserData: pointer.Bool(true),
 		},
 	})
@@ -41,14 +40,14 @@ func (c *ButtonResetLFGSelection) Handle(ctx context.Context, session *discordgo
 		}
 	}
 
-	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playfab.ServerUpdateUserDataRequest{
 		KeysToRemove: lfgKeys,
 	})
 	if err != nil {
 		return fmt.Errorf("error updating playfab user data: %w", err)
 	}
 
-	err = playFabClient.CancelAllMatchmakingTicketsForPlayer(ctx, loginResponse.EntityToken, &playFabAPI.CancelAllMatchmakingTicketsForPlayerRequest{
+	err = playFabClient.CancelAllMatchmakingTicketsForPlayer(ctx, loginResponse.EntityToken, &playfab.CancelAllMatchmakingTicketsForPlayerRequest{
 		QueueName: "dungeons",
 		Entity:    loginResponse.EntityToken.Entity,
 	})

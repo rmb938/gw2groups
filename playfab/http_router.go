@@ -14,7 +14,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	"github.com/rmb938/gw2groups/pkg/api_clients/playfab"
 )
 
 type MatchMakingTicketMessage struct {
@@ -79,7 +79,7 @@ func HTTPRouter() *chi.Mux {
 			return
 		}
 
-		playFabClient := playFabAPI.NewPlayFabClient()
+		playFabClient := playfab.NewPlayFabClient()
 		titleEntityToken, err := playFabClient.GetTitleEntityToken(ctx)
 		if err != nil {
 			log.Printf("error getting title entity token: %s", err)
@@ -87,7 +87,7 @@ func HTTPRouter() *chi.Mux {
 			return
 		}
 
-		matchMakingTicketResponse, err := playFabClient.GetMatchmakingTicket(ctx, *titleEntityToken, &playFabAPI.GetMatchMakingTicketRequest{
+		matchMakingTicketResponse, err := playFabClient.GetMatchmakingTicket(ctx, *titleEntityToken, &playfab.GetMatchMakingTicketRequest{
 			EscapeObject: false,
 			QueueName:    matchMakingTicketMessage.QueueName,
 			TicketId:     matchMakingTicketMessage.TicketId,
@@ -104,7 +104,7 @@ func HTTPRouter() *chi.Mux {
 		}
 
 		if matchMakingTicketResponse.Status == "Matched" {
-			matchResponse, err := playFabClient.GetMatch(ctx, *titleEntityToken, &playFabAPI.GetMatchRequest{
+			matchResponse, err := playFabClient.GetMatch(ctx, *titleEntityToken, &playfab.GetMatchRequest{
 				EscapeObject:           false,
 				MatchId:                *matchMakingTicketResponse.MatchId,
 				QueueName:              matchMakingTicketMessage.QueueName,

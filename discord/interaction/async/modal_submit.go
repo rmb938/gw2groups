@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	"github.com/rmb938/gw2groups/discord/interaction/async/modal_submit"
 )
@@ -15,7 +14,7 @@ var modalSubmits = map[string]modal_submit.Submit{
 	"modals_gw2_api_key": &modal_submit.ModalsGw2ApiKey{},
 }
 
-func (i *ModalSubmit) Handler(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction) error {
+func (i *ModalSubmit) Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) error {
 	data := interaction.ModalSubmitData()
 
 	// Real Message Handler Here

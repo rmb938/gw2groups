@@ -1,4 +1,4 @@
-package api
+package gw2
 
 import (
 	"encoding/json"

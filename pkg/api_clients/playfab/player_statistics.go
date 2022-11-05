@@ -1,4 +1,4 @@
-package api
+package playfab
 
 type PlayerStatisticValueResponse struct {
 	StatisticName string `json:"StatisticName"`

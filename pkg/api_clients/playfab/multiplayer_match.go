@@ -1,4 +1,4 @@
-package api
+package playfab
 
 import (
 	"context"
@@ -33,11 +33,11 @@ type MatchmakingPlayerWithTeamAssignment struct {
 }
 
 type GetMatchResponse struct {
-	ArrangementString string         `json:"ArrangementString"`
-	MatchId           string         `json:"MatchId"`
-	Members           []interface{}  `json:"Members"`
-	RegionPreferences []string       `json:"RegionPreferences"`
-	ServerDetails     *ServerDetails `json:"ServerDetails"`
+	ArrangementString string                                `json:"ArrangementString"`
+	MatchId           string                                `json:"MatchId"`
+	Members           []MatchmakingPlayerWithTeamAssignment `json:"Members"`
+	RegionPreferences []string                              `json:"RegionPreferences"`
+	ServerDetails     *ServerDetails                        `json:"ServerDetails"`
 }
 
 func (c *Client) GetMatch(ctx context.Context, entityToken EntityToken, request *GetMatchRequest) (*GetMatchResponse, error) {

@@ -3,7 +3,6 @@ package interaction
 import (
 	"context"
 
-	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -12,5 +11,5 @@ type SyncInteraction interface {
 }
 
 type AsyncInteraction interface {
-	Handler(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction) error
+	Handler(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction) error
 }

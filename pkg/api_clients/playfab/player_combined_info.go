@@ -1,4 +1,4 @@
-package api
+package playfab
 
 type PlayerProfileViewConstraintsRequest struct {
 	ShowAvatarUrl                     *bool `json:"ShowAvatarUrl,omitempty"`

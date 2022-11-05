@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	gw2Api "github.com/rmb938/gw2groups/pkg/gw2/api"
-	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	"github.com/rmb938/gw2groups/pkg/api_clients/gw2"
+	"github.com/rmb938/gw2groups/pkg/api_clients/playfab"
 	"k8s.io/utils/pointer"
 )
 
@@ -17,11 +17,11 @@ type ModalsGw2ApiKey struct {
 func (s *ModalsGw2ApiKey) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.ModalSubmitInteractionData) error {
 	apiKey := data.Components[0].(*discordgo.ActionsRow).Components[0].(*discordgo.TextInput).Value
 
-	gw2Client := gw2Api.NewGW2APIClient(apiKey)
+	gw2Client := gw2.NewGW2APIClient(apiKey)
 
 	gw2Account, err := gw2Client.GetAccount(ctx)
 	if err != nil {
-		if gw2Api.IsAPIError(err) {
+		if gw2.IsAPIError(err) {
 			_, err := session.FollowupMessageEdit(interaction, interaction.Message.ID, &discordgo.WebhookEdit{
 				Content: pointer.String(fmt.Sprintf("Error validating API Key. Please try again: %s", err)),
 				Components: &[]discordgo.MessageComponent{
@@ -41,11 +41,11 @@ func (s *ModalsGw2ApiKey) Handle(ctx context.Context, session *discordgo.Session
 		return fmt.Errorf("error getting gw2 account: %w", err)
 	}
 
-	playFabClient := playFabAPI.NewPlayFabClient()
-	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
+	playFabClient := playfab.NewPlayFabClient()
+	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playfab.ServerLoginWithCustomIDRequest{
 		CreateAccount:  pointer.Bool(true),
 		ServerCustomId: interaction.User.ID,
-		InfoRequestParameters: &playFabAPI.PlayerCombinedInfoRequestParams{
+		InfoRequestParameters: &playfab.PlayerCombinedInfoRequestParams{
 			GetUserData: pointer.Bool(true),
 		},
 	})
@@ -60,7 +60,7 @@ func (s *ModalsGw2ApiKey) Handle(ctx context.Context, session *discordgo.Session
 		}
 	}
 
-	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playfab.ServerUpdateUserDataRequest{
 		Data: map[string]string{
 			"gw2-api-key": apiKey,
 		},

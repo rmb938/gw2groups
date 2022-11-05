@@ -3,10 +3,17 @@ Discord Bot to provide a better LFG experience for Guild Wars 2
 
 ### Feature TODO's
 
-List of Features I would like to implement
+List of Features I would like to implement, these are not in priority order
 
 If you see a feature not on this list feel free to make an Issue.
 
+- [ ] Expose HTTP API
+- [ ] Web UI
+    * Requires HTTP API
+    * I'm not a web developer so if someone wants to work on this let me know
+- [ ] BlishHUD UI
+    * Requires HTTP API
+    * I'm not a C# developer so if someone wants to work on this let me know
 - [ ] Large Community Private LFG
     * Currently, LFG create matches across all of Discord
     * Allow communities to make their own matching queues

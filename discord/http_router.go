@@ -15,6 +15,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	_const "github.com/rmb938/gw2groups/discord/const"
 	interaction2 "github.com/rmb938/gw2groups/discord/interaction"
 )
 
@@ -73,6 +74,10 @@ func HTTPRouter() *chi.Mux {
 			return
 		}
 
+		ctx = _const.SetPubsubClient(ctx, pubsubClient)
+		ctx = _const.SetPubsubTopic(ctx, pubsubTopicDiscordInteractions)
+		ctx = _const.SetPubsubTopic(ctx, pubsubTopicPlayfabMatchmakingTickets)
+
 		bodyRaw, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "error reading body", http.StatusInternalServerError)
@@ -87,7 +92,7 @@ func HTTPRouter() *chi.Mux {
 			return
 		}
 
-		response, err := interaction2.SyncInteractionRouter(ctx, session, pubsubTopicDiscordInteractions, interaction, bodyRaw)
+		response, err := interaction2.SyncInteractionRouter(ctx, session, interaction, bodyRaw)
 		if err != nil {
 			log.Printf("error handling interaction %s: %s\n", interaction.Type, err)
 			http.Error(w, "error handling interaction", http.StatusInternalServerError)
@@ -114,6 +119,10 @@ func HTTPRouter() *chi.Mux {
 			//  no idea how to test this locally with the emulator though
 		}
 
+		ctx = _const.SetPubsubClient(ctx, pubsubClient)
+		ctx = _const.SetPubsubTopic(ctx, pubsubTopicDiscordInteractions)
+		ctx = _const.SetPubsubTopic(ctx, pubsubTopicPlayfabMatchmakingTickets)
+
 		bodyRaw, err := io.ReadAll(r.Body)
 		if err != nil {
 			http.Error(w, "error reading body", http.StatusInternalServerError)
@@ -136,7 +145,7 @@ func HTTPRouter() *chi.Mux {
 			return
 		}
 
-		err = interaction2.AsyncInteractionRouter(ctx, session, pubsubTopicPlayfabMatchmakingTickets, interaction)
+		err = interaction2.AsyncInteractionRouter(ctx, session, interaction)
 
 		if err != nil {
 			log.Printf("error handling interaction %s: %s", interaction.Type, err)

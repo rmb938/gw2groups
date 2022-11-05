@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -11,19 +12,19 @@ import (
 	"cloud.google.com/go/pubsub"
 	"github.com/bwmarrin/discordgo"
 	_const "github.com/rmb938/gw2groups/discord/const"
-	gw2Api "github.com/rmb938/gw2groups/pkg/gw2/api"
-	playFabAPI "github.com/rmb938/gw2groups/pkg/playfab/api"
+	gw2Api "github.com/rmb938/gw2groups/pkg/api_clients/gw2"
+	playfab2 "github.com/rmb938/gw2groups/pkg/api_clients/playfab"
 	"github.com/rmb938/gw2groups/playfab"
 	"k8s.io/utils/pointer"
 )
 
 type ButtonLFGDungeonModeStory struct{}
 
-func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discordgo.Session, pubsubTopicPlayfabMatchmakingTickets *pubsub.Topic, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
-	playFabClient := playFabAPI.NewPlayFabClient()
-	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playFabAPI.ServerLoginWithCustomIDRequest{
+func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discordgo.Session, interaction *discordgo.Interaction, data discordgo.MessageComponentInteractionData) error {
+	playFabClient := playfab2.NewPlayFabClient()
+	loginResponse, err := playFabClient.LoginWithCustomID(ctx, &playfab2.ServerLoginWithCustomIDRequest{
 		ServerCustomId: interaction.User.ID,
-		InfoRequestParameters: &playFabAPI.PlayerCombinedInfoRequestParams{
+		InfoRequestParameters: &playfab2.PlayerCombinedInfoRequestParams{
 			GetUserData: pointer.Bool(true),
 		},
 	})
@@ -50,7 +51,7 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 		}
 	}
 
-	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playfab2.ServerUpdateUserDataRequest{
 		Data: map[string]string{
 			"lfg_dungeon_mode": "story",
 		},
@@ -84,7 +85,7 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 	//  to do this effectively we would need to spin up something for every match making request
 
 	// TODO: start helper method to do match making ticket
-	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playFabAPI.ServerUpdateUserDataRequest{
+	_, err = playFabClient.UpdateUserData(ctx, loginResponse.PlayFabId, &playfab2.ServerUpdateUserDataRequest{
 		Data: map[string]string{
 			"lfg_last_ack_time": strconv.FormatInt(time.Now().Unix(), 10),
 		},
@@ -93,10 +94,10 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 		return fmt.Errorf("error updating playfab user data: %w", err)
 	}
 
-	matchMakingTicketResponse, err := playFabClient.CreateMatchMakingTicket(ctx, loginResponse.EntityToken, &playFabAPI.CreateMatchMakingTicketRequest{
-		Creator: playFabAPI.MatchmakingPlayer{
+	matchMakingTicketResponse, err := playFabClient.CreateMatchMakingTicket(ctx, loginResponse.EntityToken, &playfab2.CreateMatchMakingTicketRequest{
+		Creator: playfab2.MatchmakingPlayer{
 			Entity: loginResponse.EntityToken.Entity,
-			Attributes: playFabAPI.MatchmakingPlayerAttributes{
+			Attributes: playfab2.MatchmakingPlayerAttributes{
 				DataObject: map[string]interface{}{
 					"lfg_world_location": strconv.Itoa(gw2WorldLocation),
 					"lfg_player_count":   1, // used for playerCount expansion rule
@@ -139,7 +140,8 @@ func (c *ButtonLFGDungeonModeStory) Handle(ctx context.Context, session *discord
 		return fmt.Errorf("error marshaling MatchMakingTicketMessage: %w", err)
 	}
 
-	result := pubsubTopicPlayfabMatchmakingTickets.Publish(ctx, &pubsub.Message{
+	pubsubTopic := _const.GetPubsubTopic(ctx, os.Getenv("PUBSUB_PLAYFAB_MATCHMAKING_TICKETS_TOPIC_ID"))
+	result := pubsubTopic.Publish(ctx, &pubsub.Message{
 		Data: messageBytes,
 	})
 
